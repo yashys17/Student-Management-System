@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
+#include <string>
 using namespace std;
 
 class Student {
@@ -19,12 +19,6 @@ public:
 
         cout << "Enter Marks: ";
         cin >> marks;
-    }
-
-    void display() {
-        cout << "\nRoll No: " << rollNo;
-        cout << "\nName: " << name;
-        cout << "\nMarks: " << marks << endl;
     }
 };
 
@@ -46,12 +40,35 @@ void addStudent() {
 void viewStudents() {
     ifstream file("students.txt");
 
-    string line;
+    int roll;
+    string name;
+    float marks;
 
-    cout << "\n===== STUDENT RECORDS =====\n";
+    cout << "\n-------------------------------------------------\n";
+    cout << "Roll\tName\t\tMarks\tGrade\n";
+    cout << "-------------------------------------------------\n";
 
-    while (getline(file, line)) {
-        cout << line << endl;
+    while (file >> roll) {
+        file.ignore();
+        getline(file, name, '|');
+        file >> marks;
+        file.ignore();
+
+        char grade;
+
+        if (marks >= 90)
+            grade = 'A';
+        else if (marks >= 75)
+            grade = 'B';
+        else if (marks >= 60)
+            grade = 'C';
+        else
+            grade = 'D';
+
+        cout << roll << "\t"
+             << name << "\t\t"
+             << marks << "\t"
+             << grade << endl;
     }
 
     file.close();
@@ -67,24 +84,35 @@ void searchStudent() {
     int r;
     string name;
     float marks;
-    char delimiter;
-
     bool found = false;
 
     while (file >> r) {
-        file >> delimiter;
+        file.ignore();
         getline(file, name, '|');
         file >> marks;
+        file.ignore();
 
         if (r == roll) {
+            char grade;
+
+            if (marks >= 90)
+                grade = 'A';
+            else if (marks >= 75)
+                grade = 'B';
+            else if (marks >= 60)
+                grade = 'C';
+            else
+                grade = 'D';
+
             cout << "\nStudent Found\n";
-            cout << "Roll No: " << r << endl;
-            cout << "Name: " << name << endl;
-            cout << "Marks: " << marks << endl;
+            cout << "-------------------------\n";
+            cout << "Roll No : " << r << endl;
+            cout << "Name    : " << name << endl;
+            cout << "Marks   : " << marks << endl;
+            cout << "Grade   : " << grade << endl;
+
             found = true;
         }
-
-        file.ignore();
     }
 
     if (!found)
@@ -125,6 +153,65 @@ void deleteStudent() {
         cout << "\nStudent Not Found!\n";
 }
 
+void updateStudent() {
+    ifstream file("students.txt");
+    ofstream temp("temp.txt");
+
+    int roll;
+    cout << "\nEnter Roll Number to Update: ";
+    cin >> roll;
+
+    int r;
+    string name;
+    float marks;
+    bool found = false;
+
+    while (file >> r) {
+        file.ignore();
+        getline(file, name, '|');
+        file >> marks;
+        file.ignore();
+
+        if (r == roll) {
+            cout << "\nEnter New Name: ";
+            cin.ignore();
+            getline(cin, name);
+
+            cout << "Enter New Marks: ";
+            cin >> marks;
+
+            found = true;
+        }
+
+        temp << r << "|" << name << "|" << marks << endl;
+    }
+
+    file.close();
+    temp.close();
+
+    remove("students.txt");
+    rename("temp.txt", "students.txt");
+
+    if (found)
+        cout << "\nStudent Updated Successfully!\n";
+    else
+        cout << "\nStudent Not Found!\n";
+}
+
+void totalStudents() {
+    ifstream file("students.txt");
+
+    int count = 0;
+    string line;
+
+    while (getline(file, line))
+        count++;
+
+    cout << "\nTotal Students: " << count << endl;
+
+    file.close();
+}
+
 int main() {
     int choice;
 
@@ -134,7 +221,9 @@ int main() {
         cout << "\n2. View Students";
         cout << "\n3. Search Student";
         cout << "\n4. Delete Student";
-        cout << "\n5. Exit";
+        cout << "\n5. Update Student";
+        cout << "\n6. Total Students";
+        cout << "\n7. Exit";
         cout << "\nEnter Choice: ";
         cin >> choice;
 
@@ -156,6 +245,14 @@ int main() {
             break;
 
         case 5:
+            updateStudent();
+            break;
+
+        case 6:
+            totalStudents();
+            break;
+
+        case 7:
             cout << "\nThank You!\n";
             break;
 
@@ -163,7 +260,7 @@ int main() {
             cout << "\nInvalid Choice!\n";
         }
 
-    } while (choice != 5);
+    } while (choice != 7);
 
     return 0;
 }
